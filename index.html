@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AD25C01 · EDA Quiz · RVS College</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, system-ui, sans-serif; }
+        body { background: linear-gradient(145deg, #eef2f7 0%, #d9e2ec 100%); padding: 2rem 1.5rem; display: flex; flex-direction: column; align-items: center; }
+        .main-container { max-width: 1000px; width: 100%; background: white; border-radius: 2rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); padding: 2rem 2.2rem; }
+        .college-header { text-align: center; margin-bottom: 2rem; border-bottom: 3px solid #0b3b5c; padding-bottom: 1rem; }
+        .college-header h1 { font-size: 1.9rem; color: #0b3b5c; font-weight: 700; }
+        .college-header h2 { font-size: 1.3rem; color: #1e4a6b; font-weight: 500; margin-top: 0.25rem; }
+        .college-header .dept { font-size: 1rem; color: #2c5e7e; background: #e6f0f7; display: inline-block; padding: 0.3rem 1.5rem; border-radius: 40px; margin-top: 0.5rem; font-weight: 600; }
+        .subject-badge { background: #0b3b5c; color: white; padding: 0.4rem 1.5rem; border-radius: 30px; font-weight: 600; display: inline-block; margin-top: 0.6rem; font-size: 1rem; }
+        .name-section { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; background: #f0f6fc; padding: 1.2rem 1.8rem; border-radius: 60px; margin-bottom: 2rem; gap: 1rem; }
+        .name-section label { font-weight: 600; color: #0b3b5c; font-size: 1.1rem; }
+        .name-section input { flex: 1; min-width: 240px; padding: 0.9rem 1.5rem; border: 2px solid #b8d0e0; border-radius: 60px; font-size: 1rem; outline: none; background: white; font-weight: 500; }
+        .name-section input:focus { border-color: #0b3b5c; box-shadow: 0 0 0 4px rgba(11, 59, 92, 0.15); }
+        .quiz-grid { display: flex; flex-direction: column; gap: 1.5rem; margin-bottom: 2.5rem; }
+        .quiz-item { background: #ffffff; border: 1px solid #d6e3ee; border-radius: 1.5rem; padding: 1.4rem 1.8rem; }
+        .question-text { font-weight: 600; color: #0b2b40; font-size: 1.05rem; margin-bottom: 1rem; display: flex; gap: 0.6rem; }
+        .q-num { background: #0b3b5c; color: white; width: 26px; height: 26px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 700; flex-shrink: 0; }
+        .options { display: flex; flex-wrap: wrap; gap: 1rem 2rem; padding-left: 0.5rem; }
+        .option { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.98rem; color: #1f3f55; font-weight: 500; }
+        .option input[type="radio"] { width: 18px; height: 18px; accent-color: #0b3b5c; cursor: pointer; }
+        .action-bar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem; margin-top: 0.8rem; }
+        .btn { border-radius: 60px; padding: 1rem 2.2rem; font-weight: 700; font-size: 1rem; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; gap: 0.6rem; background: white; color: #0b3b5c; border: 2px solid #0b3b5c; }
+        .btn-primary { background: #0b3b5c; color: white; }
+        .btn-primary:hover { background: #0f4b6e; transform: translateY(-2px); }
+        .btn-secondary { background: #e3eef7; border-color: #b8d0e0; }
+        .btn-secondary:hover { background: #d0e2f0; }
+        .score-preview { font-weight: 700; font-size: 1.25rem; color: #0b3b5c; background: #e9f2f9; padding: 0.6rem 1.5rem; border-radius: 40px; }
+        #pdf-render-container { position: fixed; left: -10000px; top: 0; width: 800px; background: #ffffff; z-index: -1; }
+        .scorecard { font-family: 'Segoe UI', Arial, sans-serif; padding: 2rem; width: 800px; background: white; color: #1f3f55; }
+        .scorecard-header { text-align: center; border-bottom: 3px double #0b3b5c; padding-bottom: 0.8rem; margin-bottom: 1.5rem; }
+        .scorecard-header h2 { color: #0b3b5c; font-size: 1.8rem; }
+        .scorecard-header h3 { color: #2a5b7a; font-weight: 500; margin-top: 0.2rem; font-size: 1rem; }
+        .student-details { display: flex; justify-content: space-between; background: #f2f7fc; padding: 1rem 1.8rem; border-radius: 16px; margin-bottom: 1.8rem; font-size: 1.1rem; font-weight: 500; }
+        .score-summary { display: flex; justify-content: space-around; margin: 2rem 0; background: #ffffff; border: 2px solid #d6e3ee; border-radius: 24px; padding: 1.5rem; }
+        .score-summary div { text-align: center; }
+        .score-summary .big-number { font-size: 2.6rem; font-weight: 800; color: #0b3b5c; line-height: 1.2; }
+        .answer-review { margin-top: 2rem; }
+        .review-item { display: flex; gap: 0.8rem; padding: 0.7rem 0.5rem; border-bottom: 1px solid #e0eaf3; font-size: 0.9rem; }
+        .review-item.correct { background: #e6f7e6; }
+        .review-item.incorrect { background: #ffeaea; }
+        .review-q { font-weight: 600; flex: 1; }
+        .review-ans { color: #2a5b7a; font-weight: 500; width: 45%; }
+        @media (max-width: 600px) {
+            .main-container { padding: 1.5rem 1rem; }
+            .options { flex-direction: column; gap: 0.5rem; }
+            .action-bar { flex-direction: column; align-items: stretch; }
+            .btn { justify-content: center; }
+            .name-section { flex-direction: column; align-items: stretch; border-radius: 30px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-container" id="quizApp">
+        <div class="college-header">
+            <h1>R.V.S College of Engineering, Dindigul</h1>
+            <h2>Department of Artificial Intelligence and Data Science</h2>
+            <div class="dept">AD25C01 · Exploratory Data Analysis</div>
+            <div class="subject-badge">📊 25 Question Quiz · EDA Mindset</div>
+        </div>
+
+        <div class="name-section">
+            <label for="studentName">👤 Student name:</label>
+            <input type="text" id="studentName" placeholder="e.g. Priya Raman" value="Student">
+        </div>
+
+        <div class="quiz-grid" id="quizGrid"></div>
+
+        <div class="action-bar">
+            <div class="score-preview" id="scorePreview">Score: 0 / 25</div>
+            <div style="display: flex; gap: 0.8rem; flex-wrap: wrap;">
+                <button class="btn btn-secondary" id="resetBtn" type="button">⟲ Reset</button>
+                <button class="btn btn-primary" id="downloadPdfBtn" type="button">📄 Generate PDF Scorecard</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="pdf-render-container">
+        <div class="scorecard" id="scorecardContent"></div>
+    </div>
+
+    <script>
+        (function() {
+            try {
+                // ---------- QUIZ DATA ----------
+                const questions = [
+                    { q: "What is the primary purpose of Exploratory Data Analysis (EDA)?", options: ["To confirm a hypothesis", "To summarize main characteristics of data", "To deploy machine learning models", "To replace statistical testing"], correct: 1 },
+                    { q: "Which Pandas method is used to get a concise summary of a DataFrame, including data types and non-null counts?", options: [".head()", ".describe()", ".info()", ".shape"], correct: 2 },
+                    { q: "Which of the following is a data quality issue commonly addressed in EDA?", options: ["High cardinality", "Missing values", "Multicollinearity", "All of the above"], correct: 3 },
+                    { q: "In the context of EDA, what does the 'mindset' primarily emphasize?", options: ["Confirming biases", "Curiosity and skepticism", "Only using Bayesian methods", "Avoiding visualizations"], correct: 1 },
+                    { q: "Which visualization is best suited for spotting outliers in a single continuous variable?", options: ["Pie chart", "Box plot", "Bar chart", "Heatmap"], correct: 1 },
+                    { q: "When handling missing numeric data, which measure is more robust to outliers?", options: ["Mean", "Median", "Mode", "Standard deviation"], correct: 1 },
+                    { q: "What does the Pandas method .resample() primarily operate on?", options: ["Categorical columns", "Datetime index", "Text data", "Image data"], correct: 1 },
+                    { q: "In time series, what does 'down-sampling' mean?", options: ["Increasing frequency", "Decreasing frequency", "Removing seasonality", "Filling missing values"], correct: 1 },
+                    { q: "Which correlation coefficient value indicates a very strong negative linear relationship?", options: ["0.1", "-0.85", "0.5", "0.0"], correct: 1 },
+                    { q: "Simpson's Paradox occurs when:", options: ["Correlation equals causation", "A trend appears in groups but reverses when combined", "Multicollinearity is present", "Data is normally distributed"], correct: 1 },
+                    { q: "What does a pairplot (seaborn) primarily help to visualize?", options: ["Univariate distributions only", "Bivariate relationships and distributions", "Time series seasonality", "Causal inference"], correct: 1 },
+                    { q: "In hypothesis testing, what does a p-value less than 0.05 typically indicate?", options: ["Accept the null hypothesis", "Reject the null hypothesis", "Prove the alternative hypothesis", "The result is not significant"], correct: 1 },
+                    { q: "Which of the following is a Type I error?", options: ["Failing to reject a false null", "Rejecting a true null", "Accepting a false null", "None of the above"], correct: 1 },
+                    { q: "Which Scikit-learn class is used for simple linear regression?", options: ["LogisticRegression", "LinearRegression", "DecisionTreeClassifier", "KMeans"], correct: 1 },
+                    { q: "What does R² (R-squared) represent in regression evaluation?", options: ["Mean absolute error", "Proportion of variance explained", "Root mean squared error", "Correlation coefficient"], correct: 1 },
+                    { q: "Which library is commonly used to save trained Python models?", options: ["matplotlib", "pickle", "seaborn", "scipy"], correct: 1 },
+                    { q: "In Flask, which decorator is used to define a route for prediction?", options: ["@app.route('/predict')", "@app.predict", "@predict('/')", "@route('/predict')"], correct: 0 },
+                    { q: "What is the main goal of multivariate analysis in EDA?", options: ["Analyze a single variable", "Analyze relationships among multiple variables", "Test causality", "Remove outliers"], correct: 1 },
+                    { q: "Which of the following is a common pitfall when interpreting correlation?", options: ["Correlation implies causation", "Using scatter plots", "Computing Pearson correlation", "Checking data distribution"], correct: 0 },
+                    { q: "What does binning (discretization) of a continuous variable involve?", options: ["Removing outliers", "Grouping continuous values into bins", "Standardizing values", "Imputing missing values"], correct: 1 },
+                    { q: "Which pandas function is used to rename columns?", options: [".rename()", ".rename_axis()", ".set_index()", ".columns()"], correct: 0 },
+                    { q: "What does the .duplicated() method in pandas help to identify?", options: ["Missing values", "Duplicate rows", "Outliers", "Data types"], correct: 1 },
+                    { q: "In the context of EDA, what is a confounding variable?", options: ["A variable that directly causes the outcome", "A variable that influences both independent and dependent variables", "A dependent variable", "A measurement error"], correct: 1 },
+                    { q: "Which statistical test is commonly used to compare means of two groups?", options: ["Chi-square test", "t-test", "ANOVA", "Mann-Whitney U"], correct: 1 },
+                    { q: "What is the purpose of cross-validation in model building?", options: ["Increase training accuracy", "Assess model generalization", "Reduce data size", "Feature selection"], correct: 1 }
+                ];
+
+                let userAnswers = new Array(25).fill(null);
+
+                const quizGrid = document.getElementById('quizGrid');
+                const scorePreview = document.getElementById('scorePreview');
+                const studentNameInput = document.getElementById('studentName');
+                const resetBtn = document.getElementById('resetBtn');
+                const downloadPdfBtn = document.getElementById('downloadPdfBtn');
+                const scorecardContent = document.getElementById('scorecardContent');
+
+                function renderQuiz() {
+                    let html = '';
+                    questions.forEach((q, idx) => {
+                        html += '<div class="quiz-item" data-qidx="' + idx + '">';
+                        html += '<div class="question-text"><span class="q-num">' + (idx + 1) + '</span><span>' + q.q + '</span></div>';
+                        html += '<div class="options">';
+                        q.options.forEach((opt, optIdx) => {
+                            const checked = (userAnswers[idx] === optIdx) ? 'checked' : '';
+                            html += '<label class="option"><input type="radio" name="q' + idx + '" value="' + optIdx + '" data-qidx="' + idx + '" data-optidx="' + optIdx + '" ' + checked + '> ' + opt + '</label>';
+                        });
+                        html += '</div></div>';
+                    });
+                    quizGrid.innerHTML = html;
+
+                    document.querySelectorAll('input[type="radio"]').forEach(radio => {
+                        radio.addEventListener('change', function() {
+                            const qIdx = parseInt(this.dataset.qidx);
+                            const optIdx = parseInt(this.dataset.optidx);
+                            userAnswers[qIdx] = optIdx;
+                            updateScorePreview();
+                        });
+                    });
+                }
+
+                function calculateScore() {
+                    let correctCount = 0;
+                    questions.forEach((q, idx) => {
+                        if (userAnswers[idx] === q.correct) correctCount++;
+                    });
+                    return correctCount;
+                }
+
+                function updateScorePreview() {
+                    scorePreview.textContent = 'Score: ' + calculateScore() + ' / 25';
+                }
+
+                function escapeHTML(str) {
+                    return String(str).replace(/[&<>"]/g, function(m) {
+                        if (m === '&') return '&amp;';
+                        if (m === '<') return '&lt;';
+                        if (m === '>') return '&gt;';
+                        if (m === '"') return '&quot;';
+                        return m;
+                    });
+                }
+
+                // ---------- SCORECARD (footer removed) ----------
+                function buildScorecardHTML() {
+                    const studentName = studentNameInput.value.trim() || 'Student';
+                    const score = calculateScore();
+                    const percentage = ((score / 25) * 100).toFixed(1);
+                    const dateStr = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+
+                    let reviewHTML = '';
+                    questions.forEach((q, idx) => {
+                        const selected = userAnswers[idx];
+                        const isCorrect = (selected === q.correct);
+                        const selectedText = (selected !== null) ? q.options[selected] : 'Not attempted';
+                        const correctText = q.options[q.correct];
+                        reviewHTML += '<div class="review-item ' + (isCorrect ? 'correct' : 'incorrect') + '">';
+                        reviewHTML += '<div class="review-q">' + (idx + 1) + '. ' + escapeHTML(q.q) + '</div>';
+                        reviewHTML += '<div class="review-ans">' + (isCorrect ? '✓ Correct' : 'Your answer: ' + escapeHTML(selectedText) + '<br>Correct: ' + escapeHTML(correctText)) + '</div>';
+                        reviewHTML += '</div>';
+                    });
+
+                    // NOTE: footer-note block intentionally removed here.
+                    return '<div class="scorecard-header">' +
+                        '<h2>R.V.S College of Engineering, Dindigul</h2>' +
+                        '<h3>Department of AI &amp; DS · AD25C01 Exploratory Data Analysis</h3>' +
+                        '<h3 style="font-size:1.1rem; margin-top:0.5rem;">📋 Quiz Scorecard</h3>' +
+                        '</div>' +
+                        '<div class="student-details">' +
+                        '<span><strong>Student:</strong> ' + escapeHTML(studentName) + '</span>' +
+                        '<span><strong>Date:</strong> ' + dateStr + '</span>' +
+                        '</div>' +
+                        '<div class="score-summary">' +
+                        '<div><div class="big-number">' + score + '</div><div>out of 25</div></div>' +
+                        '<div><div class="big-number">' + percentage + '%</div><div>Percentage</div></div>' +
+                        '<div><div class="big-number">' + (score >= 13 ? '✅ PASS' : '❌ FAIL') + '</div><div>Result</div></div>' +
+                        '</div>' +
+                        '<div class="answer-review">' +
+                        '<h3 style="color:#0b3b5c; margin-bottom:1rem;">📝 Detailed Review</h3>' +
+                        reviewHTML +
+                        '</div>';
+                }
+
+                async function generatePDF() {
+                    const studentName = studentNameInput.value.trim() || 'Student';
+                    scorecardContent.innerHTML = buildScorecardHTML();
+
+                    await new Promise(r => setTimeout(r, 150));
+
+                    const { jsPDF } = window.jspdf;
+                    const pdf = new jsPDF('p', 'pt', 'a4');
+                    const pageWidth = pdf.internal.pageSize.getWidth();
+                    const pageHeight = pdf.internal.pageSize.getHeight();
+                    const margin = 20;
+
+                    try {
+                        const canvas = await html2canvas(scorecardContent, {
+                            scale: 2,
+                            useCORS: true,
+                            backgroundColor: '#ffffff',
+                            logging: false,
+                            windowWidth: scorecardContent.scrollWidth,
+                            windowHeight: scorecardContent.scrollHeight
+                        });
+
+                        const imgData = canvas.toDataURL('image/png');
+                        const imgWidth = pageWidth - margin * 2;
+                        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+                        let heightLeft = imgHeight;
+                        let position = margin;
+
+                        pdf.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
+                        heightLeft -= (pageHeight - margin * 2);
+
+                        while (heightLeft > 0) {
+                            pdf.addPage();
+                            position = margin - (imgHeight - heightLeft);
+                            pdf.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
+                            heightLeft -= (pageHeight - margin * 2);
+                        }
+
+                        const safeName = studentName.replace(/[^a-zA-Z0-9_-]/g, '_');
+                        pdf.save('EDA_Quiz_Scorecard_' + safeName + '.pdf');
+                    } catch (err) {
+                        console.error('PDF generation failed:', err);
+                        alert('Could not generate PDF: ' + err.message);
+                    }
+                }
+
+                function resetQuiz() {
+                    if (!confirm('Reset all answers?')) return;
+                    userAnswers = new Array(25).fill(null);
+                    renderQuiz();
+                    updateScorePreview();
+                }
+
+                // ---------- INIT ----------
+                renderQuiz();
+                updateScorePreview();
+                resetBtn.addEventListener('click', resetQuiz);
+                downloadPdfBtn.addEventListener('click', function() {
+                    if (!studentNameInput.value.trim()) {
+                        alert('Please enter student name before generating the scorecard.');
+                        studentNameInput.focus();
+                        return;
+                    }
+                    generatePDF();
+                });
+
+            } catch (e) {
+                console.error('Initialization error:', e);
+                document.getElementById('quizGrid').innerHTML =
+                    '<p style="color:red;padding:1rem;">⚠️ Something went wrong loading the quiz. Check the browser console for details.</p>';
+            }
+        })();
+    </script>
+</body>
+</html>
